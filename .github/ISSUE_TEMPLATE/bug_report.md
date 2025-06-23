@@ -27,7 +27,7 @@ Description de ce qui se passe réellement.
 
 ## 📟 Messages série / Logs
 
-```
+```text
 Coller ici les messages du moniteur série
 ```
 
