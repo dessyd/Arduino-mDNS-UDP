@@ -35,7 +35,8 @@ réseau local via mDNS et publie des messages de heartbeat toutes les minutes.
 
 ## 📚 Librairies nécessaires
 
-Les librairies suivantes doivent être installées via le gestionnaire de librairies Arduino :
+Les librairies suivantes doivent être installées via
+ le gestionnaire de librairies Arduino :
 
 - `WiFiNINA` (incluse avec MKR 1010)
 - `RTCZero` (incluse avec MKR 1010)

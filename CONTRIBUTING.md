@@ -133,7 +133,8 @@ Fonctionnalités souhaitées pour les futures versions :
 
 ## 📜 Code de conduite
 
-Ce projet adhère au [Contributor Covenant](https://www.contributor-covenant.org/). En participant, vous vous engagez à maintenir un environnement accueillant et respectueux.
+Ce projet adhère au [Contributor Covenant](https://www.contributor-covenant.org/).
+ En participant, vous vous engagez à maintenir un environnement accueillant et respectueux.
 
 ---
 
