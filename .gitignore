@@ -1,0 +1,153 @@
+# Arduino IDE files
+*.fqbn
+*.fqbn.*
+*.build/
+build/
+*.hex
+*.elf
+*.eep
+*.map
+*.sym
+*.lst
+*.ino.bin
+*.ino.elf
+*.ino.map
+
+# Arduino libraries and build artifacts
+libraries/
+hardware/
+packages/
+staging/
+tmp/
+cache/
+
+# Arduino IDE configuration
+arduino_debug.log
+.arduino15/
+.vscode/
+.idea/
+
+# Secrets and sensitive configuration
+arduino_secrets.h
+secrets.h
+config.h
+wifi_credentials.h
+*.secret
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# Logs and debug files
+*.log
+debug.txt
+
+# Platform specific
+# Windows
+*.exe
+*.msi
+*.dll
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Linux
+*.so
+*.o
+
+# Editor files
+*.sublime-*
+*.code-workspace
+
+# Documentation build artifacts
+docs/_build/
+docs/.doctrees/
+
+# Test files
+test/
+tests/
+*_test.ino
+*_test.cpp
+
+# Backup files
+*.backup
+*.orig
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Node.js (if using for any tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if using for any tools)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]

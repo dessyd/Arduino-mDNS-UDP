@@ -1,0 +1,68 @@
+name: Arduino CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        board:
+          - arduino:samd:mkrwifi1010
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Arduino CLI
+      uses: arduino/setup-arduino-cli@v1
+      
+    - name: Install Arduino SAMD core
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install arduino:samd
+        
+    - name: Install required libraries
+      run: |
+        arduino-cli lib install "PubSubClient"
+        
+    - name: Create arduino_secrets.h from example
+      run: |
+        cp arduino_secrets.h.example arduino_secrets.h
+        
+    - name: Compile sketch
+      run: |
+        arduino-cli compile --fqbn ${{ matrix.board }} Arduino-mDNS-UDP.ino
+        
+  lint-markdown:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Lint Markdown files
+      uses: DavidAnson/markdownlint-cli2-action@v16
+      with:
+        globs: '**/*.md'
+        
+  check-formatting:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check Arduino code formatting
+      run: |
+        # Simple check for basic formatting issues
+        if grep -r "	" *.ino *.cpp *.h 2>/dev/null; then
+          echo "Error: Found tab characters. Please use spaces for indentation."
+          exit 1
+        fi
+        echo "Code formatting check passed"
