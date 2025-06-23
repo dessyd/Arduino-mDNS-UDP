@@ -1,6 +1,7 @@
 # Arduino MKR 1010 - mDNS MQTT Client
 
-Un client Arduino qui découvre automatiquement les serveurs MQTT sur le réseau local via mDNS et publie des messages de heartbeat toutes les minutes.
+Un client Arduino qui découvre automatiquement les serveurs MQTT sur le
+réseau local via mDNS et publie des messages de heartbeat toutes les minutes.
 
 ## 📋 Table des matières
 
@@ -29,7 +30,8 @@ Un client Arduino qui découvre automatiquement les serveurs MQTT sur le réseau
 
 - Arduino MKR WiFi 1010
 - Connexion WiFi 2.4GHz
-- Serveur MQTT sur le réseau local (ex: Mosquitto, Home Assistant, etc.)
+- Serveur MQTT sur le réseau local
+  (ex: Mosquitto, Home Assistant, etc.)
 
 ## 📚 Librairies nécessaires
 

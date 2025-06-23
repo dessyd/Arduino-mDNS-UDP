@@ -56,7 +56,7 @@ Merci de votre intérêt pour contribuer à ce projet Arduino mDNS MQTT Client !
 - Tester la découverte mDNS avec différents brokers
 - Valider la synchronisation RTC
 
-## 🔧 Configuration développement
+## ⚙️ Configuration développement
 
 ### Prérequis
 
@@ -124,9 +124,10 @@ Fonctionnalités souhaitées pour les futures versions :
 - [ ] Gestion de la qualité de service (QoS)
 - [ ] Métriques système (mémoire, uptime)
 
-## 💬 Communication
+## 🔍 Communication
 
-- **Discussions** : Utilisez les [Discussions GitHub](../../discussions)
+- **Discussions** : Utilisez les
+  [Discussions GitHub](../../discussions)
 - **Questions** : Créez une issue avec le label "question"
 - **Bugs** : Issues avec reproduction steps détaillées
 

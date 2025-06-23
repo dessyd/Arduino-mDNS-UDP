@@ -1,3 +1,5 @@
+# Pull Request
+
 ## 📝 Description
 
 Décrivez brièvement les changements apportés dans cette PR.
@@ -5,10 +7,13 @@ Décrivez brièvement les changements apportés dans cette PR.
 ## 🎯 Type de changement
 
 - [ ] 🐛 Bug fix (changement non-breaking qui corrige un problème)
-- [ ] ✨ Nouvelle fonctionnalité (changement non-breaking qui ajoute une fonctionnalité)
-- [ ] 💥 Breaking change (fix ou feature qui casserait la fonctionnalité existante)
+- [ ] ✨ Nouvelle fonctionnalité (changement non-breaking qui ajoute
+  une fonctionnalité)
+- [ ] 💥 Breaking change (fix ou feature qui casserait la
+  fonctionnalité existante)
 - [ ] 📚 Documentation (changements de documentation uniquement)
-- [ ] 🔧 Refactoring (changement de code qui ne corrige pas de bug ni n'ajoute de fonctionnalité)
+- [ ] 🔧 Refactoring (changement de code qui ne corrige pas de bug
+  ni n'ajoute de fonctionnalité)
 - [ ] ⚡ Amélioration des performances
 - [ ] 🧪 Tests (ajout ou correction de tests)
 
@@ -29,13 +34,14 @@ Décrivez les tests que vous avez effectués pour valider vos changements :
 - [ ] Synchronisation RTC
 
 **Configuration de test :**
+
 - Broker MQTT : [ex: Mosquitto 2.0]
 - Réseau WiFi : [ex: WPA2 2.4GHz]
 - Arduino IDE : [ex: 2.3.0]
 
 ## 📟 Logs/Captures
 
-```
+```text
 Coller ici les messages série pertinents ou captures d'écran
 ```
 
