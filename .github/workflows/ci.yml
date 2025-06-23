@@ -29,11 +29,63 @@ jobs:
         
     - name: Install required libraries
       run: |
+        # PubSubClient - Librairie MQTT
         arduino-cli lib install "PubSubClient"
+        
+        # WiFiNINA - Déjà incluse avec le core SAMD mais on s'assure qu'elle est à jour
+        arduino-cli lib install "WiFiNINA"
+        
+        # RTCZero - Déjà incluse avec le core SAMD mais on s'assure qu'elle est à jour  
+        arduino-cli lib install "RTCZero"
+        
+        # WiFiUdp fait partie de WiFiNINA, pas besoin d'installation séparée
+        
+        # Afficher les librairies installées pour vérification
+        arduino-cli lib list
         
     - name: Create arduino_secrets.h from example
       run: |
         cp arduino_secrets.h.example arduino_secrets.h
+        
+    - name: Verify library dependencies
+      run: |
+        echo "Vérification des librairies installées..."
+        echo "" 
+        
+        # Afficher toutes les librairies installées
+        echo "=== Librairies installées ==="
+        arduino-cli lib list
+        echo ""
+        
+        # Vérifier PubSubClient
+        if arduino-cli lib list | grep -q "PubSubClient"; then
+          VERSION=$(arduino-cli lib list | grep "PubSubClient" | awk '{print $2}')
+          echo "✓ PubSubClient installée (version: $VERSION)"
+        else
+          echo "✗ PubSubClient manquante"
+          exit 1
+        fi
+        
+        # Vérifier WiFiNINA
+        if arduino-cli lib list | grep -q "WiFiNINA"; then
+          VERSION=$(arduino-cli lib list | grep "WiFiNINA" | awk '{print $2}')
+          echo "✓ WiFiNINA installée (version: $VERSION)"
+        else
+          echo "✗ WiFiNINA manquante"
+          exit 1
+        fi
+        
+        # Vérifier RTCZero
+        if arduino-cli lib list | grep -q "RTCZero"; then
+          VERSION=$(arduino-cli lib list | grep "RTCZero" | awk '{print $2}')
+          echo "✓ RTCZero installée (version: $VERSION)"
+        else
+          echo "✗ RTCZero manquante"
+          exit 1
+        fi
+        
+        echo ""
+        echo "🎉 Toutes les librairies requises sont installées!"
         
     - name: Compile sketch
       run: |
