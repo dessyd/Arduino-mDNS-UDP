@@ -5,6 +5,15 @@
 #define CONFIG_H
 
 // ===============================
+// Configuration Debug
+// ===============================
+
+// Activer/désactiver les messages de debug
+#ifndef DEBUG
+#define DEBUG true  // Mettre à false pour désactiver tous les messages série
+#endif
+
+// ===============================
 // Configuration MQTT
 // ===============================
 
