@@ -87,13 +87,13 @@ Le code utilise les paramètres par défaut suivants :
    // #define MQTT_TOPIC "/mon-arduino"
    ```
 
-5. **Ouvrez** `Arduino-mDNS-UDP.ino` dans l'IDE Arduino
+4. **Ouvrez** `Arduino-mDNS-UDP.ino` dans l'IDE Arduino
 
-6. **Installez** les librairies nécessaires via le gestionnaire de librairies
+5. **Installez** les librairies nécessaires via le gestionnaire de librairies
 
-7. **Sélectionnez** la carte "Arduino MKR WiFi 1010"
+6. **Sélectionnez** la carte "Arduino MKR WiFi 1010"
 
-8. **Téléversez** le code
+7. **Téléversez** le code
 
 ## 🔄 Fonctionnement
 
@@ -339,6 +339,7 @@ const char* mqttTopic = "/mon-arduino";
 ### Exemples de configurations
 
 #### Configuration pour maison connectée
+
 ```cpp
 // config.h
 #define MDNS_SERVICE_TYPE "mqtt"
@@ -349,6 +350,7 @@ const char* mqttTopic = "/mon-arduino";
 ```
 
 #### Configuration pour monitoring industriel
+
 ```cpp
 // config.h
 #define MDNS_SERVICE_TYPE "mqtts"  // Sécurisé
@@ -360,6 +362,7 @@ const char* mqttTopic = "/mon-arduino";
 ```
 
 #### Configuration pour développement/debug
+
 ```cpp
 // config.h
 #define MDNS_SERVICE_TYPE "mosquitto"
