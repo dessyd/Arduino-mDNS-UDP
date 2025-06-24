@@ -5,6 +5,19 @@
 #include "arduino_secrets.h"
 #include "config.h"
 
+// Macros pour les messages de debug conditionnels
+#if DEBUG
+  #define DEBUG_PRINT(x) Serial.print(x)
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINTF(x, y) Serial.print(x); Serial.println(y)
+  #define DEBUG_BEGIN(x) Serial.begin(x); while (!Serial) { ; }
+#else
+  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINTF(x, y)
+  #define DEBUG_BEGIN(x)
+#endif
+
 // Configuration réseau
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
@@ -75,20 +88,13 @@ void buildMDNSQuery(byte* query, int* queryLength, String serviceName) {
 
 void setup()
 {
-  Serial.begin(9600);
-  while (!Serial)
-  {
-    ; // Attendre la connexion série
-  }
+  DEBUG_BEGIN(9600);
 
-  Serial.println("Démarrage du client mDNS/MQTT");
-  Serial.println("Configuration:");
-  Serial.print("  Service recherché: ");
-  Serial.println(buildMDNSServiceName());
-  Serial.print("  Topic MQTT: ");
-  Serial.println(mqttTopic);
-  Serial.print("  Port MQTT: ");
-  Serial.println(mqttServerPort);
+  DEBUG_PRINTLN("Démarrage du client mDNS/MQTT");
+  DEBUG_PRINTLN("Configuration:");
+  DEBUG_PRINTF("  Service recherché: ", buildMDNSServiceName());
+  DEBUG_PRINTF("  Topic MQTT: ", mqttTopic);
+  DEBUG_PRINTF("  Port MQTT: ", mqttServerPort);
 
   // Connexion WiFi
   connectToWiFi();
@@ -99,8 +105,8 @@ void setup()
   // Initialisation UDP
   udp.begin(LOCAL_UDP_PORT_CONST);
 
-  Serial.println("Système initialisé");
-  Serial.println("Recherche d'un serveur MQTT...");
+  DEBUG_PRINTLN("Système initialisé");
+  DEBUG_PRINTLN("Recherche d'un serveur MQTT...");
 }
 
 void loop()
@@ -149,9 +155,9 @@ void loop()
 
 void initializeRTC()
 {
-  Serial.println("Initialisation du module RTC...");
+  DEBUG_PRINTLN("Initialisation du module RTC...");
   rtc.begin();
-  Serial.println("RTC démarré, synchronisation en cours...");
+  DEBUG_PRINTLN("RTC démarré, synchronisation en cours...");
 }
 
 void tryToSyncRTC()
@@ -164,7 +170,7 @@ void tryToSyncRTC()
   {
     lastSyncAttempt = currentTime;
 
-    Serial.println("Tentative de synchronisation RTC avec WiFi.getTime()...");
+    DEBUG_PRINTLN("Tentative de synchronisation RTC avec WiFi.getTime()...");
     unsigned long epochTime = WiFi.getTime();
 
     if (epochTime != 0)
@@ -174,13 +180,13 @@ void tryToSyncRTC()
 
       rtcInitialized = true;
 
-      Serial.println("RTC synchronisé avec WiFi.getTime()!");
-      Serial.print("Heure actuelle: ");
+      DEBUG_PRINTLN("RTC synchronisé avec WiFi.getTime()!");
+      DEBUG_PRINT("Heure actuelle: ");
       printCurrentTime();
     }
     else
     {
-      Serial.println("WiFi.getTime() a retourné 0, nouvelle tentative...");
+      DEBUG_PRINTLN("WiFi.getTime() a retourné 0, nouvelle tentative...");
     }
   }
 }
@@ -193,35 +199,32 @@ void printCurrentTime()
     snprintf(dateTimeStr, sizeof(dateTimeStr), "%02d/%02d/20%02d %02d:%02d:%02d",
              rtc.getDay(), rtc.getMonth(), rtc.getYear(),
              rtc.getHours(), rtc.getMinutes(), rtc.getSeconds());
-    Serial.println(dateTimeStr);
+    DEBUG_PRINTLN(dateTimeStr);
   }
 }
 
 void connectToWiFi()
 {
-  Serial.print("Connexion au réseau WiFi: ");
-  Serial.println(ssid);
+  DEBUG_PRINTF("Connexion au réseau WiFi: ", ssid);
 
   WiFi.begin(ssid, pass);
 
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
-    Serial.print(".");
+    DEBUG_PRINT(".");
   }
 
-  Serial.println();
-  Serial.println("WiFi connecté!");
-  Serial.print("Adresse IP: ");
-  Serial.println(WiFi.localIP());
+  DEBUG_PRINTLN("");
+  DEBUG_PRINTLN("WiFi connecté!");
+  DEBUG_PRINTF("Adresse IP: ", WiFi.localIP());
 }
 
 void searchForMQTTServer()
 {
   String serviceName = buildMDNSServiceName();
-  Serial.println("\n--- Recherche serveur ---");
-  Serial.print("Service: ");
-  Serial.println(serviceName);
+  DEBUG_PRINTLN("\n--- Recherche serveur ---");
+  DEBUG_PRINTF("Service: ", serviceName);
 
   // Construction du paquet mDNS query
   byte query[128];  // Augmenté pour les noms plus longs
@@ -256,11 +259,11 @@ void searchForMQTTServer()
 
   if (udp.endPacket() == 1)
   {
-    Serial.println("Requête mDNS envoyée");
+    DEBUG_PRINTLN("Requête mDNS envoyée");
   }
   else
   {
-    Serial.println("Erreur envoi requête");
+    DEBUG_PRINTLN("Erreur envoi requête");
   }
 }
 
@@ -277,15 +280,14 @@ void listenForMDNSResponses()
 
     if (len > 0 && isMQTTResponse(packetBuffer, len))
     {
-      Serial.println("\n*** SERVEUR MQTT TROUVÉ! ***");
-      Serial.print("IP du serveur: ");
-      Serial.println(remoteIP);
+      DEBUG_PRINTLN("\n*** SERVEUR MQTT TROUVÉ! ***");
+      DEBUG_PRINTF("IP du serveur: ", remoteIP);
 
       mqttServerIP = remoteIP;
       mqttServerFound = true;
 
-      Serial.println("Arrêt de la recherche mDNS");
-      Serial.println("Connexion au serveur MQTT...");
+      DEBUG_PRINTLN("Arrêt de la recherche mDNS");
+      DEBUG_PRINTLN("Connexion au serveur MQTT...");
     }
   }
 }
@@ -294,50 +296,46 @@ void connectToMQTT()
 {
   mqttClient.setServer(mqttServerIP, mqttServerPort);
 
-  Serial.print("Connexion MQTT à ");
-  Serial.print(mqttServerIP);
-  Serial.print(":");
-  Serial.println(mqttServerPort);
+  DEBUG_PRINTF("Connexion MQTT à ", mqttServerIP);
+  DEBUG_PRINTF(":", mqttServerPort);
   
   // Test de connectivité TCP avant MQTT
   WiFiClient testClient;
-  Serial.print("Test de connectivité TCP...");
+  DEBUG_PRINT("Test de connectivité TCP...");
   if (testClient.connect(mqttServerIP, mqttServerPort)) {
-    Serial.println(" OK");
+    DEBUG_PRINTLN(" OK");
     testClient.stop();
   } else {
-    Serial.println(" ÉCHEC - Serveur inaccessible!");
+    DEBUG_PRINTLN(" ÉCHEC - Serveur inaccessible!");
     mqttServerFound = false;
     return;
   }
 
   String clientId = "Arduino-" + String(WiFi.localIP()[3]);
-  Serial.print("Client ID: ");
-  Serial.println(clientId);
+  DEBUG_PRINTF("Client ID: ", clientId);
 
   if (mqttClient.connect(clientId.c_str()))
   {
-    Serial.println("Connexion MQTT réussie!");
-    Serial.println("Publication de messages toutes les minutes...");
+    DEBUG_PRINTLN("Connexion MQTT réussie!");
+    DEBUG_PRINTLN("Publication de messages toutes les minutes...");
     mqttConnected = true;
   }
   else
   {
-    Serial.print("Erreur connexion MQTT: ");
-    Serial.println(mqttClient.state());
+    DEBUG_PRINTF("Erreur connexion MQTT: ", mqttClient.state());
     
     // Décodage des erreurs MQTT
     switch(mqttClient.state()) {
-      case -4: Serial.println("  -> MQTT_CONNECTION_TIMEOUT"); break;
-      case -3: Serial.println("  -> MQTT_CONNECTION_LOST"); break;
-      case -2: Serial.println("  -> MQTT_CONNECT_FAILED (TCP échec)"); break;
-      case -1: Serial.println("  -> MQTT_DISCONNECTED"); break;
-      case 1: Serial.println("  -> MQTT_CONNECT_BAD_PROTOCOL"); break;
-      case 2: Serial.println("  -> MQTT_CONNECT_BAD_CLIENT_ID"); break;
-      case 3: Serial.println("  -> MQTT_CONNECT_UNAVAILABLE"); break;
-      case 4: Serial.println("  -> MQTT_CONNECT_BAD_CREDENTIALS"); break;
-      case 5: Serial.println("  -> MQTT_CONNECT_UNAUTHORIZED"); break;
-      default: Serial.println("  -> Erreur inconnue"); break;
+      case -4: DEBUG_PRINTLN("  -> MQTT_CONNECTION_TIMEOUT"); break;
+      case -3: DEBUG_PRINTLN("  -> MQTT_CONNECTION_LOST"); break;
+      case -2: DEBUG_PRINTLN("  -> MQTT_CONNECT_FAILED (TCP échec)"); break;
+      case -1: DEBUG_PRINTLN("  -> MQTT_DISCONNECTED"); break;
+      case 1: DEBUG_PRINTLN("  -> MQTT_CONNECT_BAD_PROTOCOL"); break;
+      case 2: DEBUG_PRINTLN("  -> MQTT_CONNECT_BAD_CLIENT_ID"); break;
+      case 3: DEBUG_PRINTLN("  -> MQTT_CONNECT_UNAVAILABLE"); break;
+      case 4: DEBUG_PRINTLN("  -> MQTT_CONNECT_BAD_CREDENTIALS"); break;
+      case 5: DEBUG_PRINTLN("  -> MQTT_CONNECT_UNAUTHORIZED"); break;
+      default: DEBUG_PRINTLN("  -> Erreur inconnue"); break;
     }
     
     // Recommencer la recherche si la connexion échoue
@@ -374,19 +372,17 @@ void publishHeartbeat()
   char message[100];
   snprintf(message, sizeof(message), HEARTBEAT_MESSAGE_FORMAT, ipStr, timeStr);
 
-  Serial.println("\n--- Publication MQTT ---");
-  Serial.print("Sujet: ");
-  Serial.println(mqttTopic);
-  Serial.print("Message: ");
-  Serial.println(message);
+  DEBUG_PRINTLN("\n--- Publication MQTT ---");
+  DEBUG_PRINTF("Sujet: ", mqttTopic);
+  DEBUG_PRINTF("Message: ", message);
 
   if (mqttClient.publish(mqttTopic, message))
   {
-    Serial.println("Message publié avec succès!");
+    DEBUG_PRINTLN("Message publié avec succès!");
   }
   else
   {
-    Serial.println("Erreur publication");
+    DEBUG_PRINTLN("Erreur publication");
   }
 }
 
