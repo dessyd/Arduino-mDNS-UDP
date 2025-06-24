@@ -30,7 +30,6 @@ arduino_debug.log
 # Secrets and sensitive configuration
 arduino_secrets.h
 secrets.h
-config.h
 wifi_credentials.h
 *.secret
 
