@@ -127,11 +127,11 @@ void tryToSyncRTC()
       // Utiliser setEpoch pour définir directement le timestamp
       rtc.setEpoch(epochTime);
 
+      rtcInitialized = true;
+
       Serial.println("RTC synchronisé avec WiFi.getTime()!");
       Serial.print("Heure actuelle: ");
       printCurrentTime();
-
-      rtcInitialized = true;
     }
     else
     {
