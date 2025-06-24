@@ -3,6 +3,7 @@
 #include <PubSubClient.h>
 #include <RTCZero.h>
 #include "arduino_secrets.h"
+#include "config.h"
 
 // Configuration réseau
 char ssid[] = SECRET_SSID;
@@ -10,15 +11,17 @@ char pass[] = SECRET_PASS;
 
 // Configuration UDP et mDNS
 WiFiUDP udp;
-const int MDNS_PORT = 5353;
+const int MDNS_PORT_CONST = MDNS_PORT;
 IPAddress mdnsMulticastIP(224, 0, 0, 251);
-const int LOCAL_UDP_PORT = 5354;
+const int LOCAL_UDP_PORT_CONST = LOCAL_UDP_PORT;
 
 // Configuration MQTT
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 IPAddress mqttServerIP;
-int mqttServerPort = 1883;
+int mqttServerPort = MQTT_PORT;
+const char* mqttTopic = MQTT_TOPIC;
+
 bool mqttServerFound = false;
 bool mqttConnected = false;
 
@@ -29,11 +32,46 @@ bool rtcInitialized = false;
 // Configuration timing
 unsigned long lastSearchTime = 0;
 unsigned long lastPublishTime = 0;
-const unsigned long SEARCH_INTERVAL = 30000;  // Recherche toutes les 30 secondes si pas trouvé
-const unsigned long PUBLISH_INTERVAL = 60000; // Publication toutes les minutes
+const unsigned long SEARCH_INTERVAL_CONST = SEARCH_INTERVAL;
+const unsigned long PUBLISH_INTERVAL_CONST = PUBLISH_INTERVAL;
+const unsigned long RTC_SYNC_INTERVAL_CONST = RTC_SYNC_INTERVAL;
 
 // Buffer pour les paquets
 byte packetBuffer[512];
+
+// Fonction pour construire le nom du service mDNS
+String buildMDNSServiceName() {
+  String serviceName = "_";
+  serviceName += MDNS_SERVICE_TYPE;
+  serviceName += "._";
+  serviceName += MDNS_PROTOCOL;
+  serviceName += ".";
+  serviceName += MDNS_DOMAIN;
+  serviceName += ".";
+  return serviceName;
+}
+
+// Fonction pour construire la partie query du paquet mDNS
+void buildMDNSQuery(byte* query, int* queryLength, String serviceName) {
+  // Diviser le nom du service en labels
+  int start = 0;
+  int end = serviceName.indexOf('.', start);
+  
+  while (end != -1) {
+    String label = serviceName.substring(start, end);
+    if (label.length() > 0) {
+      query[(*queryLength)++] = label.length();
+      for (int i = 0; i < label.length(); i++) {
+        query[(*queryLength)++] = label.charAt(i);
+      }
+    }
+    start = end + 1;
+    end = serviceName.indexOf('.', start);
+  }
+  
+  // Fin du nom
+  query[(*queryLength)++] = 0x00;
+}
 
 void setup()
 {
@@ -44,6 +82,13 @@ void setup()
   }
 
   Serial.println("Démarrage du client mDNS/MQTT");
+  Serial.println("Configuration:");
+  Serial.print("  Service recherché: ");
+  Serial.println(buildMDNSServiceName());
+  Serial.print("  Topic MQTT: ");
+  Serial.println(mqttTopic);
+  Serial.print("  Port MQTT: ");
+  Serial.println(mqttServerPort);
 
   // Connexion WiFi
   connectToWiFi();
@@ -52,7 +97,7 @@ void setup()
   initializeRTC();
 
   // Initialisation UDP
-  udp.begin(LOCAL_UDP_PORT);
+  udp.begin(LOCAL_UDP_PORT_CONST);
 
   Serial.println("Système initialisé");
   Serial.println("Recherche d'un serveur MQTT...");
@@ -71,7 +116,7 @@ void loop()
   if (!mqttServerFound)
   {
     // Rechercher un serveur MQTT
-    if (currentTime - lastSearchTime >= SEARCH_INTERVAL)
+    if (currentTime - lastSearchTime >= SEARCH_INTERVAL_CONST)
     {
       searchForMQTTServer();
       lastSearchTime = currentTime;
@@ -89,7 +134,7 @@ void loop()
     else
     {
       // Publier un message toutes les minutes
-      if (currentTime - lastPublishTime >= PUBLISH_INTERVAL)
+      if (currentTime - lastPublishTime >= PUBLISH_INTERVAL_CONST)
       {
         publishHeartbeat();
         lastPublishTime = currentTime;
@@ -115,7 +160,7 @@ void tryToSyncRTC()
   unsigned long currentTime = millis();
 
   // Essayer de synchroniser toutes les 5 secondes
-  if (currentTime - lastSyncAttempt >= 5000)
+  if (currentTime - lastSyncAttempt >= RTC_SYNC_INTERVAL_CONST)
   {
     lastSyncAttempt = currentTime;
 
@@ -173,10 +218,13 @@ void connectToWiFi()
 
 void searchForMQTTServer()
 {
-  Serial.println("\n--- Recherche serveur MQTT ---");
+  String serviceName = buildMDNSServiceName();
+  Serial.println("\n--- Recherche serveur ---");
+  Serial.print("Service: ");
+  Serial.println(serviceName);
 
   // Construction du paquet mDNS query
-  byte query[64];
+  byte query[128];  // Augmenté pour les noms plus longs
   int queryLength = 0;
 
   // Header mDNS
@@ -193,36 +241,17 @@ void searchForMQTTServer()
   query[queryLength++] = 0x00; // Additional RRs
   query[queryLength++] = 0x00;
 
-  // Question: _mqtt._tcp.local.
-  query[queryLength++] = 0x05; // "_mqtt"
-  query[queryLength++] = '_';
-  query[queryLength++] = 'm';
-  query[queryLength++] = 'q';
-  query[queryLength++] = 't';
-  query[queryLength++] = 't';
+  // Construire le nom du service dynamiquement
+  buildMDNSQuery(query, &queryLength, serviceName);
 
-  query[queryLength++] = 0x04; // "_tcp"
-  query[queryLength++] = '_';
-  query[queryLength++] = 't';
-  query[queryLength++] = 'c';
-  query[queryLength++] = 'p';
-
-  query[queryLength++] = 0x05; // "local"
-  query[queryLength++] = 'l';
-  query[queryLength++] = 'o';
-  query[queryLength++] = 'c';
-  query[queryLength++] = 'a';
-  query[queryLength++] = 'l';
-
-  query[queryLength++] = 0x00; // Fin du nom
-
+  // Type PTR et Class IN
   query[queryLength++] = 0x00; // Type PTR
   query[queryLength++] = 0x0C;
   query[queryLength++] = 0x00; // Class IN
   query[queryLength++] = 0x01;
 
   // Envoi du paquet
-  udp.beginPacket(mdnsMulticastIP, MDNS_PORT);
+  udp.beginPacket(mdnsMulticastIP, MDNS_PORT_CONST);
   udp.write(query, queryLength);
 
   if (udp.endPacket() == 1)
@@ -269,8 +298,22 @@ void connectToMQTT()
   Serial.print(mqttServerIP);
   Serial.print(":");
   Serial.println(mqttServerPort);
+  
+  // Test de connectivité TCP avant MQTT
+  WiFiClient testClient;
+  Serial.print("Test de connectivité TCP...");
+  if (testClient.connect(mqttServerIP, mqttServerPort)) {
+    Serial.println(" OK");
+    testClient.stop();
+  } else {
+    Serial.println(" ÉCHEC - Serveur inaccessible!");
+    mqttServerFound = false;
+    return;
+  }
 
   String clientId = "Arduino-" + String(WiFi.localIP()[3]);
+  Serial.print("Client ID: ");
+  Serial.println(clientId);
 
   if (mqttClient.connect(clientId.c_str()))
   {
@@ -282,6 +325,21 @@ void connectToMQTT()
   {
     Serial.print("Erreur connexion MQTT: ");
     Serial.println(mqttClient.state());
+    
+    // Décodage des erreurs MQTT
+    switch(mqttClient.state()) {
+      case -4: Serial.println("  -> MQTT_CONNECTION_TIMEOUT"); break;
+      case -3: Serial.println("  -> MQTT_CONNECTION_LOST"); break;
+      case -2: Serial.println("  -> MQTT_CONNECT_FAILED (TCP échec)"); break;
+      case -1: Serial.println("  -> MQTT_DISCONNECTED"); break;
+      case 1: Serial.println("  -> MQTT_CONNECT_BAD_PROTOCOL"); break;
+      case 2: Serial.println("  -> MQTT_CONNECT_BAD_CLIENT_ID"); break;
+      case 3: Serial.println("  -> MQTT_CONNECT_UNAVAILABLE"); break;
+      case 4: Serial.println("  -> MQTT_CONNECT_BAD_CREDENTIALS"); break;
+      case 5: Serial.println("  -> MQTT_CONNECT_UNAUTHORIZED"); break;
+      default: Serial.println("  -> Erreur inconnue"); break;
+    }
+    
     // Recommencer la recherche si la connexion échoue
     mqttServerFound = false;
   }
@@ -304,7 +362,7 @@ void publishHeartbeat()
   }
   else
   {
-    strcpy(timeStr, "--:--:--");
+    strcpy(timeStr, DEFAULT_TIME_STRING);
   }
 
   // Formater l'adresse IP avec snprintf
@@ -312,16 +370,17 @@ void publishHeartbeat()
   char ipStr[16];
   snprintf(ipStr, sizeof(ipStr), "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 
-  // Créer le message complet
+  // Créer le message complet avec le format configurable
   char message[100];
-  snprintf(message, sizeof(message), "%s vous dit bonjour. Il est %s", ipStr, timeStr);
+  snprintf(message, sizeof(message), HEARTBEAT_MESSAGE_FORMAT, ipStr, timeStr);
 
   Serial.println("\n--- Publication MQTT ---");
-  Serial.println("Sujet: /arduino");
+  Serial.print("Sujet: ");
+  Serial.println(mqttTopic);
   Serial.print("Message: ");
   Serial.println(message);
 
-  if (mqttClient.publish("/arduino", message))
+  if (mqttClient.publish(mqttTopic, message))
   {
     Serial.println("Message publié avec succès!");
   }
@@ -343,20 +402,33 @@ bool isMQTTResponse(byte *data, int length)
   if (!isResponse)
     return false;
 
-  // Recherche de "mqtt" dans le paquet
-  for (int i = 0; i < length - 4; i++)
+  // Recherche du type de service configuré dans le paquet
+  String serviceType = MDNS_SERVICE_TYPE;
+  
+  for (int i = 0; i < length - serviceType.length(); i++)
   {
-    if (data[i] == 'm' && data[i + 1] == 'q' && data[i + 2] == 't' && data[i + 3] == 't')
-    {
-      return true;
+    // Vérifier la correspondance avec le type de service
+    bool match = true;
+    for (int j = 0; j < serviceType.length(); j++) {
+      if (data[i + j] != serviceType.charAt(j)) {
+        match = false;
+        break;
+      }
     }
-    // Version encodée avec longueur
-    if (data[i] == 0x05 && i + 5 < length)
+    if (match) return true;
+    
+    // Vérifier aussi la version encodée avec longueur
+    if (data[i] == serviceType.length() + 1 && i + serviceType.length() + 1 < length)
     {
-      if (data[i + 1] == '_' && data[i + 2] == 'm' && data[i + 3] == 'q' &&
-          data[i + 4] == 't' && data[i + 5] == 't')
-      {
-        return true;
+      if (data[i + 1] == '_') {
+        bool encodedMatch = true;
+        for (int j = 0; j < serviceType.length(); j++) {
+          if (data[i + 2 + j] != serviceType.charAt(j)) {
+            encodedMatch = false;
+            break;
+          }
+        }
+        if (encodedMatch) return true;
       }
     }
   }

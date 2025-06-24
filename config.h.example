@@ -1,0 +1,59 @@
+// Exemple de configuration personnalisée
+// Copiez ce fichier en config.h et modifiez selon vos besoins
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// ===============================
+// Configuration MQTT
+// ===============================
+
+// Topic de publication MQTT
+#define MQTT_TOPIC "/maison/arduino-salon"
+
+// Port MQTT par défaut  
+#define MQTT_PORT 1883
+
+// Client ID MQTT (sera complété par l'IP)
+#define MQTT_CLIENT_PREFIX "ArduinoSalon"
+
+// ===============================
+// Configuration mDNS - Service Discovery
+// ===============================
+
+// Exemples de types de services :
+// "mqtt"      - MQTT standard
+// "mqtts"     - MQTT over SSL/TLS  
+// "mosquitto" - Broker Mosquitto spécifique
+#define MDNS_SERVICE_TYPE "mqtt"
+
+// Protocol pour le service mDNS (tcp/udp)
+#define MDNS_PROTOCOL "tcp"
+
+// Domaine mDNS
+#define MDNS_DOMAIN "local"
+
+// ===============================
+// Configuration Timing
+// ===============================
+
+// Intervalle de recherche mDNS (millisecondes)
+#define SEARCH_INTERVAL 15000  // 15 secondes (plus rapide)
+
+// Intervalle de publication MQTT (millisecondes)
+#define PUBLISH_INTERVAL 30000  // 30 secondes (plus fréquent)
+
+// Intervalle de tentative de synchronisation RTC (millisecondes)
+#define RTC_SYNC_INTERVAL 10000  // 10 secondes
+
+// ===============================
+// Configuration Messages
+// ===============================
+
+// Format du message de heartbeat personnalisé
+#define HEARTBEAT_MESSAGE_FORMAT "Capteur salon (%s) - Status OK - %s"
+
+// Message par défaut si RTC non synchronisé
+#define DEFAULT_TIME_STRING "??:??:??"
+
+#endif // CONFIG_H

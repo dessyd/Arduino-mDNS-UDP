@@ -82,15 +82,18 @@ Le code utilise les paramètres par défaut suivants :
    ```cpp
    #define SECRET_SSID "VotreNomWiFi"
    #define SECRET_PASS "VotreMotDePasseWiFi"
+   
+   // Optionnel: personnaliser le topic MQTT
+   // #define MQTT_TOPIC "/mon-arduino"
    ```
 
-4. **Ouvrez** `Arduino-mDNS-UDP.ino` dans l'IDE Arduino
+5. **Ouvrez** `Arduino-mDNS-UDP.ino` dans l'IDE Arduino
 
-5. **Installez** les librairies nécessaires via le gestionnaire de librairies
+6. **Installez** les librairies nécessaires via le gestionnaire de librairies
 
-6. **Sélectionnez** la carte "Arduino MKR WiFi 1010"
+7. **Sélectionnez** la carte "Arduino MKR WiFi 1010"
 
-7. **Téléversez** le code
+8. **Téléversez** le code
 
 ## 🔄 Fonctionnement
 
@@ -283,6 +286,21 @@ Le code affiche des messages détaillés pour faciliter le debug :
 
 ## 🔧 Personnalisation
 
+### Types de services supportés
+
+Dans `config.h`, vous pouvez rechercher différents types de services :
+
+```cpp
+// Service MQTT standard
+#define MDNS_SERVICE_TYPE "mqtt"
+
+// Service MQTT sécurisé (SSL/TLS)
+#define MDNS_SERVICE_TYPE "mqtts"
+
+// Broker Mosquitto spécifique
+#define MDNS_SERVICE_TYPE "mosquitto"
+```
+
 ### Modifier l'intervalle de publication
 
 ```cpp
@@ -291,14 +309,65 @@ const unsigned long PUBLISH_INTERVAL = 30000; // 30 secondes
 
 ### Changer le topic MQTT
 
+**Option 1** : Dans `config.h`
+
 ```cpp
-if (mqttClient.publish("/mon-arduino", message)) {
+#define MQTT_TOPIC "/mon-arduino"
+```
+
+**Option 2** : Directement dans le code
+
+```cpp
+const char* mqttTopic = "/mon-arduino";
 ```
 
 ### Modifier le message
 
 ```cpp
-snprintf(message, sizeof(message), "%s dit: Système OK à %s", ipStr, timeStr);
+#define HEARTBEAT_MESSAGE_FORMAT "%s dit: Système OK à %s"
+```
+
+### Personnaliser les intervalles
+
+```cpp
+// Dans config.h
+#define SEARCH_INTERVAL 15000   // Recherche toutes les 15 secondes
+#define PUBLISH_INTERVAL 30000  // Publication toutes les 30 secondes
+#define RTC_SYNC_INTERVAL 10000 // Sync RTC toutes les 10 secondes
+```
+
+### Exemples de configurations
+
+#### Configuration pour maison connectée
+```cpp
+// config.h
+#define MDNS_SERVICE_TYPE "mqtt"
+#define MQTT_TOPIC "/maison/capteurs/salon"
+#define MQTT_CLIENT_PREFIX "CapteurSalon"
+#define PUBLISH_INTERVAL 60000  // 1 minute
+#define HEARTBEAT_MESSAGE_FORMAT "Capteur %s actif - %s"
+```
+
+#### Configuration pour monitoring industriel
+```cpp
+// config.h
+#define MDNS_SERVICE_TYPE "mqtts"  // Sécurisé
+#define MQTT_TOPIC "/monitoring/devices/mkr1010"
+#define MQTT_CLIENT_PREFIX "IndustrialSensor"
+#define PUBLISH_INTERVAL 30000   // 30 secondes
+#define SEARCH_INTERVAL 10000    // Recherche rapide
+#define HEARTBEAT_MESSAGE_FORMAT "Device %s operational - %s"
+```
+
+#### Configuration pour développement/debug
+```cpp
+// config.h
+#define MDNS_SERVICE_TYPE "mosquitto"
+#define MQTT_TOPIC "/debug/arduino"
+#define PUBLISH_INTERVAL 10000   // 10 secondes (rapide)
+#define SEARCH_INTERVAL 5000     // Recherche très rapide
+#define RTC_SYNC_INTERVAL 2000   // Sync fréquente
+#define HEARTBEAT_MESSAGE_FORMAT "[DEBUG] %s alive at %s"
 ```
 
 ## 📁 Structure du projet
@@ -313,14 +382,17 @@ Arduino-mDNS-UDP/
 │   │   └── ci.yml
 │   └── pull_request_template.md
 ├── Arduino-mDNS-UDP.ino        # Code principal
-├── arduino_secrets.h.example   # Template de configuration
+├── config.h                    # Configuration générale (par défaut)
+├── config.h.example            # Template de configuration
+├── arduino_secrets.h.example   # Template des secrets
 ├── .gitignore                  # Fichiers à ignorer par Git
 ├── CONTRIBUTING.md             # Guide de contribution
 ├── LICENSE                     # Licence MIT
 └── README.md                   # Cette documentation
 
-# Fichier à créer localement :
-arduino_secrets.h               # Configuration WiFi (ne pas committer!)
+# Fichiers à créer localement :
+arduino_secrets.h               # Secrets WiFi (ne pas committer!)
+config.h                        # Configuration personnalisée (optionnel)
 ```
 
 ## 🚀 Fonctionnalités avancées
